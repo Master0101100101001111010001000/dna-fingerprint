@@ -11,3 +11,4 @@ build/
 *.swo
 coverage/
 .cache/
+backend/.env
