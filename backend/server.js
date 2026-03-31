@@ -19,9 +19,27 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '10mb' }));
+
+// Better JSON parsing with error handling
+app.use(express.json({ 
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    try {
+      JSON.parse(buf);
+    } catch (e) {
+      console.error('Invalid JSON received:', buf.toString().substring(0, 200));
+      console.error('Error:', e.message);
+    }
+  }
+}));
+
+// Request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 // Store API key (in production, use proper secrets management)
 let ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
@@ -43,20 +61,31 @@ const DEFAULT_TOLERANCES = DIMS_24.reduce((acc, dim) => {
  */
 app.post('/api/extract', (req, res) => {
   try {
-    const { text } = req.body;
+    console.log('Extract request received. Body type:', typeof req.body);
+    console.log('Body keys:', Object.keys(req.body || {}));
+    
+    const { text } = req.body || {};
     
     if (!text || typeof text !== 'string') {
-      return res.status(400).json({ error: 'Text is required' });
+      console.error('Invalid text:', typeof text);
+      return res.status(400).json({ 
+        success: false,
+        error: 'Text is required and must be a string',
+        received: typeof text
+      });
     }
     
+    console.log('Extracting DNA from', text.length, 'characters');
     const dna = extractDNA(text);
     
+    console.log('DNA extracted successfully');
     res.json({
       success: true,
       dna,
-      wordCount: text.split(/\s+/).length
+      wordCount: text.split(/\s+/).filter(w => w.length > 0).length
     });
   } catch (error) {
+    console.error('Extract error:', error.message);
     res.status(400).json({
       success: false,
       error: error.message
