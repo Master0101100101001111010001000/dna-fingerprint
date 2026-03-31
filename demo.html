@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNA Fingerprinting System - Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #1f2937;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      color: #2563eb;
+    }
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #1f2937;
+    }
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      margin-bottom: 12px;
+    }
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .button:hover {
+      background: #1d4ed8;
+    }
+    .button:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+    }
+    .results {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+    }
+    .dimension {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .dimension:last-child {
+      border-bottom: none;
+    }
+    .dimension-code {
+      font-weight: bold;
+      color: #2563eb;
+      width: 60px;
+    }
+    .dimension-name {
+      flex: 1;
+      color: #4b5563;
+    }
+    .dimension-score {
+      font-weight: bold;
+      color: #059669;
+      width: 50px;
+      text-align: right;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .alert-info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+    .alert-warning {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+    }
+    .spinner {
+      border: 3px solid #e5e7eb;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .status {
+      margin-top: 10px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧬 DNA Fingerprinting System</h1>
+      <p style="color: #6b7280; margin-top: 8px;">Extract writing DNA from any text - 24 dimensions scored instantly</p>
+    </div>
+
+    <div class="alert alert-info">
+      <strong>ℹ️ Demo Mode:</strong> This is a simplified demo showing DNA extraction only. 
+      The full system includes rewriting and comparison features (requires backend API).
+    </div>
+
+    <div class="card">
+      <h2>Extract DNA Profile</h2>
+      <p style="color: #6b7280; margin-bottom: 16px; font-size: 14px;">
+        Paste your article (minimum 200 words) to extract its writing DNA fingerprint.
+      </p>
+      
+      <textarea id="articleText" placeholder="Paste your article here..."></textarea>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="wordCount" class="status">0 words</span>
+        <button class="button" id="extractBtn" onclick="extractDNA()">
+          🧬 Extract DNA
+        </button>
+      </div>
+
+      <div id="results" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>About the 24 Dimensions</h2>
+      <div style="font-size: 14px; line-height: 1.6; color: #4b5563;">
+        <p style="margin-bottom: 12px;">Each dimension measures a specific aspect of writing style (scored 0-100):</p>
+        <ul style="margin-left: 20px; margin-bottom: 12px;">
+          <li><code>PRP</code> - Personal Pronoun Rate (I, me, we, us)</li>
+          <li><code>BST</code> - Burstiness (sentence length variation)</li>
+          <li><code>HAP</code> - Hapax Ratio (vocabulary richness)</li>
+          <li><code>GRM</code> - Grammar Formality (active vs passive)</li>
+          <li><code>SEM</code> - Semantic Complexity (long words)</li>
+          <li>...and 19 more dimensions</li>
+        </ul>
+        <p><strong>Full system features:</strong> DNA extraction → Rewrite matching → Visual comparison (radar/bar charts)</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>System Status</h2>
+      <p style="color: #6b7280; font-size: 14px;">
+        Backend API: <span id="backendStatus" style="color: #6b7280;">Checking...</span><br>
+        Frontend: <span style="color: #059669; font-weight: bold;">✓ Running</span>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3001';
+    
+    // Update word count
+    document.getElementById('articleText').addEventListener('input', function(e) {
+      const text = e.target.value.trim();
+      const words = text.split(/\s+/).filter(w => w.length > 0);
+      const count = words.length;
+      document.getElementById('wordCount').textContent = count + ' words' + (count < 200 ? ` (need ${200 - count} more)` : '');
+      document.getElementById('extractBtn').disabled = count < 200;
+    });
+
+    // Check backend status
+    async function checkBackend() {
+      try {
+        const res = await fetch(API_URL + '/health');
+        const data = await res.json();
+        document.getElementById('backendStatus').innerHTML = '<span style="color: #059669; font-weight: bold;">✓ Running on port 3001</span>';
+      } catch (error) {
+        document.getElementById('backendStatus').innerHTML = '<span style="color: #dc2626; font-weight: bold;">✗ Not running</span>';
+      }
+    }
+
+    // Extract DNA
+    async function extractDNA() {
+      const text = document.getElementById('articleText').value.trim();
+      const btn = document.getElementById('extractBtn');
+      const results = document.getElementById('results');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Extracting...';
+      results.style.display = 'none';
+
+      try {
+        const res = await fetch(API_URL + '/api/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          displayResults(data.dna, data.wordCount);
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        results.innerHTML = `
+          <div class="alert alert-warning">
+            <strong>Error:</strong> ${error.message}
+          </div>
+        `;
+        results.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🧬 Extract DNA';
+      }
+    }
+
+    function displayResults(dna, wordCount) {
+      const dimensions = [
+        ['PRP', 'Personal Pronoun Rate'],
+        ['BST', 'Burstiness'],
+        ['REP', 'Repetition Score'],
+        ['STR', 'Sentence Starter Ratio'],
+        ['VOC', 'Vocabulary Intimacy'],
+        ['GRM', 'Grammar Formality'],
+        ['SEM', 'Semantic Complexity'],
+        ['TNE', 'Hedging Tone'],
+        ['LGC', 'Logical Connectors'],
+        ['STY', 'Stylistic Density'],
+        ['PCT', 'Punctuation Density'],
+        ['CAP', 'Capitalisation Rate'],
+        ['HAP', 'Hapax Ratio'],
+        ['VOG', 'Vagueness Guard'],
+        ['COH', 'Cohesion Score'],
+        ['SYN', 'Syntactic Complexity'],
+        ['SPE', 'Specificity'],
+        ['EPI', 'Epistemic Markers'],
+        ['FWD', 'Forward References'],
+        ['PRH', 'Paragraph Rhythm'],
+        ['DRF', 'Discourse Rhythm Fractal'],
+        ['MRP', 'Motif Repetition Pattern'],
+        ['PRV', 'Paragraph Rhythm Variance'],
+        ['BSV', 'Burstiness Skew']
+      ];
+
+      let html = `
+        <div class="alert alert-success">
+          ✓ DNA extracted successfully from ${wordCount} words!
+        </div>
+        <h3 style="margin-bottom: 12px; font-size: 18px;">24 Dimensions (0-100 scale)</h3>
+      `;
+
+      dimensions.forEach(([code, name]) => {
+        const score = dna[code];
+        html += `
+          <div class="dimension">
+            <span class="dimension-code">${code}</span>
+            <span class="dimension-name">${name}</span>
+            <span class="dimension-score">${score}</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('results').innerHTML = html;
+      document.getElementById('results').style.display = 'block';
+    }
+
+    // Check backend on load
+    checkBackend();
+  </script>
+</body>
+</html>
