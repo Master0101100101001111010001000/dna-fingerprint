@@ -251,9 +251,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server - bind to 0.0.0.0 to accept external connections
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`DNA Fingerprint API server running on port ${PORT}`);
+  console.log(`Listening on 0.0.0.0:${PORT} (accessible externally)`);
   console.log(`Anthropic API key: ${ANTHROPIC_API_KEY ? 'Configured' : 'Not configured'}`);
 });
 
